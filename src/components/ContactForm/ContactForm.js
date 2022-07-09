@@ -1,7 +1,11 @@
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as yup from 'yup';
 import { Label, Div, ErrorText } from './ContactForm.styled';
-import PropTypes from 'prop-types';
+
+import { nanoid } from 'nanoid';
+import { toast } from 'react-toastify';
+import { useSelector, useDispatch } from 'react-redux';
+import { getItems, updateContacts } from 'redux/contactsSlice';
 
 export const initialValues = {
   name: '',
@@ -29,9 +33,18 @@ const schema = yup.object({
     .matches(phoneValid, 'Phone number is not valid'),
 });
 
-const ContactForm = ({ onSubmit }) => {
+const ContactForm = () => {
+  const contacts = useSelector(getItems);
+  const dispatch = useDispatch();
+
   const handleSubmit = (value, { resetForm }) => {
-    onSubmit(value);
+    const { name } = value;
+
+    if (contacts.some(el => el.name.toLowerCase() === name.toLowerCase())) {
+      return toast.error(`${name} is already in contacts`);
+    }
+    dispatch(updateContacts({ id: nanoid(), ...value }));
+
     resetForm();
   };
 
@@ -57,10 +70,6 @@ const ContactForm = ({ onSubmit }) => {
       </Form>
     </Formik>
   );
-};
-
-ContactForm.propTypes = {
-  onSubmit: PropTypes.func.isRequired,
 };
 
 export default ContactForm;
